@@ -740,6 +740,7 @@ namespace PalletBuilder
         private void PalletBldForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             exit_event.Set();
+            Application.Exit();
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -804,7 +805,7 @@ namespace PalletBuilder
 
             long testNum = Convert.ToInt64(txtRun.Text);
 
-            if (dataSetTagEvents.Tables[0].Rows.Count > 0)
+            if (dataSetPalletTags.Tables[0].Rows.Count > 0)
             {
                 string dbms = ConfigurationManager.AppSettings["TypeRDBMS"];
                 switch (dbms.ToUpper())
@@ -939,7 +940,7 @@ namespace PalletBuilder
                 string cfgCmdText = cmdText.Replace("{is_pallet_bld}", ConfigurationManager.AppSettings["ItemSensePalletBuildTableName"]);
 
                 //Insert TestRun "insertRun_cmd"
-                const string postCmdText = @"INSERT INTO {is_pallet_bld} (palletId, facility, zoneName, create_time) " +
+                const string postCmdText = @"INSERT INTO {is_pallet_bld} (palletId, facility, zoneName, createTm) " +
                     @"VALUES(@palletId, @facility, @zoneName, @createTm); ";
                 string postCfgCmdText = postCmdText.Replace("{is_pallet_bld}", ConfigurationManager.AppSettings["ItemSensePalletBuildTableName"]);
 
@@ -961,7 +962,7 @@ namespace PalletBuilder
                         insertRun_cmd.Parameters.Add("@palletId", SqlDbType.BigInt).Value = Convert.ToInt64(txtRun.Text);
                         insertRun_cmd.Parameters.Add("@facility", SqlDbType.VarChar, 48).Value = cmbFacility.Text;
                         insertRun_cmd.Parameters.Add("@zoneName", SqlDbType.VarChar, 48).Value = cmbDoor.Text;
-                        insertRun_cmd.Parameters.Add("@createTm", SqlDbType.DateTime).Value = DateTime.UtcNow;
+                        insertRun_cmd.Parameters.Add("@createTm", SqlDbType.DateTime).Value = DateTime.Now;
                         
                         //insert the new test run params into the table 
                         insertRun_cmd.ExecuteNonQuery();
@@ -1029,7 +1030,7 @@ namespace PalletBuilder
                 //Do Not Alter - These strings are modified via the app.cfg
                 //Drop and Create "updatedb_cmd"
                 const string cmdText = @"IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{is_pallet_asc}' AND xtype = 'U') CREATE TABLE {is_pallet_asc} (epcNbr VARCHAR(128) NOT NULL,  " +
-                    @"palletId BigInt, PRIMARY KEY(palletId, epcNbr); " +
+                    @"palletId BigInt, PRIMARY KEY(palletId, epcNbr)); " +
                     @"IF EXISTS (SELECT * FROM sysobjects WHERE name='{is_pallet_asc}_TMP' AND xtype = 'U') DROP TABLE {is_pallet_asc}_TMP; CREATE TABLE {is_pallet_asc}_TMP (epcNbr VARCHAR(128) NOT NULL, " +
                     @"palletId BigInt); ";
                 string cfgCmdText = cmdText.Replace("{is_pallet_asc}", ConfigurationManager.AppSettings["ItemSensePalletAssociationTableName"]);
@@ -1190,6 +1191,7 @@ namespace PalletBuilder
         {
             if (MessageBox.Show("Exit Application?", "Exit Application", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) == DialogResult.Yes)
             {
+                exit_event.Set();
                 SaveTestRunParams();
                 Application.Exit();
             }
