@@ -22,6 +22,9 @@ namespace PalletBuilder
         [JsonProperty("jobId", NullValueHandling = NullValueHandling.Ignore)]
         public string JobId { get; set; } = null;
 
+        [JsonProperty("jobName", NullValueHandling = NullValueHandling.Ignore)]
+        public string JobName { get; set; } = null;
+
         [JsonProperty("fromZone", NullValueHandling = NullValueHandling.Ignore)]
         public string FromZone { get; set; } = null;
 
@@ -62,12 +65,13 @@ namespace PalletBuilder
         {
         }
 
-        public ItemEventRec(string epc, string tagId, string jobId, string fromZone, string fromFloor, string toZone, string toFloor, string fromFacility, string toFacility,
+        public ItemEventRec(string epc, string tagId, string jobId, string jobName, string fromZone, string fromFloor, string toZone, string toFloor, string fromFacility, string toFacility,
             double fromX, double fromY, double toX, double toY, DateTime observationTime, long palletId)
         {
             Epc = epc;
             TagId = tagId;
             JobId = jobId;
+            JobName = jobName;
             FromZone = fromZone;
             FromFloor = fromFloor;
             ToZone = toZone;
@@ -94,10 +98,11 @@ namespace PalletBuilder
         public string ItemEventRecToCsvString()
         {
             return string.Format(
-                "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14}",
+                "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}",
                 Epc,
                 TagId,
                 JobId,
+                JobName,
                 FromZone,
                 FromFloor,
                 ToZone,

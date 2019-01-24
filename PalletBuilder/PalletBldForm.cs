@@ -19,6 +19,7 @@ using System.Net;
 using System.Data.SqlClient;
 using Npgsql;
 using NpgsqlTypes;
+using System.Web.Script.Serialization;
 
 namespace PalletBuilder
 {
@@ -97,7 +98,7 @@ namespace PalletBuilder
                     ArrayList thrRecs = new ArrayList();
                     foreach (ThresholdRec rec in g_thrRecords)
                     {
-                        ThresholdRec dup = new ThresholdRec(rec.Epc, rec.ObservationTime, rec.FromZone, rec.ToZone, rec.Threshold, rec.Confidence, rec.JobId, rec.DockDoor, rec.PalletId);
+                        ThresholdRec dup = new ThresholdRec(rec.Epc, rec.FromZone, rec.ToZone, rec.Threshold, rec.ThresholdId, rec.Confidence, rec.JobId, rec.JobName, rec.ObservationTime);
                         thrRecs.Add(dup);
                     }
                     g_thrRecords.Clear();
@@ -135,7 +136,7 @@ namespace PalletBuilder
                     ArrayList itemRecs = new ArrayList();
                     foreach (ItemEventRec rec in g_itemEventRecords)
                     {
-                        ItemEventRec itm = new ItemEventRec(rec.Epc, rec.TagId, rec.JobId, rec.FromZone, rec.FromFloor,  
+                        ItemEventRec itm = new ItemEventRec(rec.Epc, rec.TagId, rec.JobId, rec.JobName, rec.FromZone, rec.FromFloor,  
                             rec.ToZone, rec.ToFloor, rec.FromFacility, rec.ToFacility, rec.FromX, rec.FromY, rec.ToX, rec.ToY, rec.ObservationTime, rec.PalletId);
                         itemRecs.Add(itm);
                     }
@@ -471,6 +472,7 @@ namespace PalletBuilder
                 log.Fatal(errMsg);
             }
         }
+
         private static void Threshold_Received(object sender, BasicDeliverEventArgs e)
         {
             #region debug_amqp_event_kpi
@@ -492,87 +494,33 @@ namespace PalletBuilder
                 var message = Encoding.UTF8.GetString(body);
                 try
                 {
-                    string msg = message.Replace("\\", string.Empty);
-                    string cln = msg.Replace("\"", string.Empty);
-                    string[] msgFields = cln.Split(',');
-                    int recCnt = msgFields.Count();
-                    switch (recCnt)
+                    var msg = new JavaScriptSerializer().Deserialize<ThresholdRec>(message);
+
+                    ThresholdRec rec = new ThresholdRec();
+                    rec.Epc = msg.Epc;
+                    rec.FromZone = msg.FromZone;
+                    rec.ToZone = msg.ToZone;
+                    rec.Threshold = msg.Threshold;
+                    rec.ThresholdId = msg.ThresholdId;
+                    rec.Confidence = msg.Confidence;
+                    rec.JobId = msg.JobId;
+                    rec.JobName = msg.JobName;
+
+                    //check to see if we want to process this event 
+                    if (ObsvThreshold.ToUpper() == "ANY")
+                        bAdd = true;
+                    else
                     {
-                        case 8:  //It's a threshold job record
-                            {
-                                ThresholdRec rec = new ThresholdRec();
-                                for (int i = 0; i < msgFields.Count(); i++)
-                                {
-                                    string[] parms = null;
-                                    switch (i)
-                                    {
-                                        case 0: parms = msgFields[i].Split(':'); rec.Epc = parms[1]; break;
-                                        case 1:
-                                            {
-                                                string x = msgFields[i].Replace("observationTime:", string.Empty);
-                                                rec.ObservationTime = Convert.ToDateTime(x);
-                                                break;
-                                            }
-                                        case 2: parms = msgFields[i].Split(':'); rec.FromZone = parms[1]; break;
-                                        case 3:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                rec.ToZone = parms[1];
-                                                break;
-                                            }
-                                        case 4:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                rec.Threshold = parms[1];
-                                                break;
-                                            }
-                                        case 5:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                if (parms[1].Length > 0 & parms[1] != @"null")
-                                                    rec.Confidence = Convert.ToDouble(parms[1]);
-                                                break;
-                                            }
-                                        case 6: parms = msgFields[i].Split(':'); rec.JobId = parms[1]; break;
-                                        case 7:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                string x = parms[1];
-                                                rec.DockDoor = x.Replace("}", string.Empty);
-                                                break;
-                                            }
-                                        default: break;
-                                    }
-                                }
+                        if (rec.Threshold.ToUpper() == ObsvThreshold.ToUpper())
+                            bAdd = true;
+                        else
+                            bAdd = false;
+                    }
 
-                                //Check to see if timer is processing the global array list
-                                if (waitOne)
-                                {
-                                    do
-                                        Thread.Sleep(50);
-                                    while (waitOne);
-                                }
-
-                                //check to see if we want to process this event 
-                                if (ObsvThreshold.ToUpper() == "ANY")
-                                    bAdd = true;
-                                else
-                                {
-                                    if (rec.Threshold.ToUpper() == ObsvThreshold.ToUpper())
-                                        bAdd = true;
-                                    else
-                                        bAdd = false;
-                                }
-
-                                if (bAdd)
-                                {
-                                    rec.PalletId = Convert.ToInt64(ConfigurationManager.AppSettings["LastPalletId"]);
-                                    g_thrRecords.Add(rec);
-                                }
-
-                                break;
-                            }
-                        default: log.Error("Unexpected number of fields received in Threshold AMQP Event Handler.  Expected 8 Received " + msgFields.Count()); break;
+                    if (bAdd)
+                    {
+                        rec.PalletId = Convert.ToInt64(ConfigurationManager.AppSettings["LastPalletId"]);
+                        g_thrRecords.Add(rec);
                     }
                 }
                 catch (Exception ex)
@@ -591,6 +539,7 @@ namespace PalletBuilder
             }
         }
 
+ 
         /// <summary>
         /// Message received event handler - AMQP Callback Item and Item Events
         /// </summary>
@@ -624,100 +573,47 @@ namespace PalletBuilder
             {
                 try
                 {
-                    string msg = message.Replace("\\", string.Empty);
-                    string cln = msg.Replace("\"", string.Empty);
-                    string[] msgFields = cln.Split(',');
-                    int recCnt = msgFields.Count();
-                    switch (recCnt)
+                    var msg = new JavaScriptSerializer().Deserialize<ItemEventRec>(message);
+
+                    ItemEventRec rec = new ItemEventRec();
+                    rec.Epc = msg.Epc;
+                    rec.FromZone = msg.FromZone;
+                    rec.ToZone = msg.ToZone;
+                    rec.FromFacility = msg.FromFacility;
+                    rec.ToFacility = msg.ToFacility;
+                    rec.FromFloor = msg.FromFloor;
+                    rec.ToFloor = msg.ToFloor;
+                    rec.FromX = msg.FromX;
+                    rec.ToX = msg.ToX;
+                    rec.FromY = msg.FromY;
+                    rec.ToY = msg.ToY;
+                    rec.JobId = msg.JobId;
+                    rec.JobName = msg.JobName;
+                    rec.ObservationTime = msg.ObservationTime;
+
+                    //Check to see if timer is processing the global array list
+                    if (waitOne)
                     {
-                        case 14:  //It's an Item Event record
-                            {
-                                ItemEventRec rec = new ItemEventRec();
-                                for (int i = 0; i < msgFields.Count(); i++)
-                                {
-                                    string[] parms = null;
-                                    switch (i)
-                                    {
-                                        case 0: parms = msgFields[i].Split(':'); rec.Epc = parms[1]; break;
-                                        case 1: parms = msgFields[i].Split(':'); rec.TagId = parms[1]; break;
-                                        case 2: parms = msgFields[i].Split(':'); rec.JobId = parms[1]; break;
-                                        case 3: parms = msgFields[i].Split(':'); rec.FromZone = parms[1]; break;
-                                        case 4: parms = msgFields[i].Split(':'); rec.FromFloor = parms[1]; break;
-                                        case 5:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                rec.ToZone = parms[1];
-                                                break;
-                                            }
-                                        case 6: parms = msgFields[i].Split(':'); rec.ToFloor = parms[1]; break;
-                                        case 7: parms = msgFields[i].Split(':'); rec.FromFacility = parms[1]; break;
-                                        case 8: parms = msgFields[i].Split(':'); rec.ToFacility = parms[1]; break;
-                                        case 9:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                if (parms[1].Length > 0 & parms[1] != @"null")
-                                                    rec.FromX = Convert.ToDouble(parms[1]);
-                                                break;
-                                            }
-                                        case 10:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                if (parms[1].Length > 0 & parms[1] != @"null")
-                                                    rec.FromY = Convert.ToDouble(parms[1]);
-                                                break;
-                                            }
-                                        case 11:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                if (parms[1].Length > 0 & parms[1] != @"null")
-                                                    rec.ToX = Convert.ToDouble(parms[1]);
-                                                break;
-                                            }
-                                        case 12:
-                                            {
-                                                parms = msgFields[i].Split(':');
-                                                if (parms[1].Length > 0 & parms[1] != @"null")
-                                                    rec.ToY = Convert.ToDouble(parms[1]);
-                                                break;
-                                            }
-                                        case 13:
-                                            {
-                                                string y = msgFields[i].Replace("observationTime:", string.Empty);
-                                                rec.ObservationTime = Convert.ToDateTime(y.Replace("}", string.Empty));
-                                                break;
-                                            }
-                                        default: break;
-                                    }
-                                }
+                        do
+                            Thread.Sleep(50);
+                        while (waitOne);
+                    }
 
-                                //Check to see if timer is processing the global array list
-                                if (waitOne)
-                                {
-                                    do
-                                        Thread.Sleep(50);
-                                    while (waitOne);
-                                }
+                    //check to see if we want to process this event 
+                    if (ObsvThreshold.ToUpper() == "ANY")
+                        bAdd = true;
+                    else
+                    {
+                        if (rec.ToZone.ToUpper() == ObsvThreshold.ToUpper())
+                            bAdd = true;
+                        else
+                            bAdd = false;
+                    }
 
-                                //check to see if we want to process this event 
-                                if (ObsvThreshold.ToUpper() == "ANY")
-                                    bAdd = true;
-                                else
-                                {
-                                    if (rec.ToZone.ToUpper() == ObsvThreshold.ToUpper())
-                                        bAdd = true;
-                                    else
-                                        bAdd = false;
-                                }
-
-                                if (bAdd)
-                                {
-                                    rec.PalletId = Convert.ToInt64(ConfigurationManager.AppSettings["LastPalletId"]);
-                                    g_itemEventRecords.Add(rec);
-                                }
-
-                                break;
-                            }
-                        default: log.Error("Unexpected number of fields received in Item_Event AMQP Event Handler.  Expected 14 Received " + msgFields.Count()); break;
+                    if (bAdd)
+                    {
+                        rec.PalletId = Convert.ToInt64(ConfigurationManager.AppSettings["LastPalletId"]);
+                        g_itemEventRecords.Add(rec);
                     }
                 }
                 catch (Exception ex)

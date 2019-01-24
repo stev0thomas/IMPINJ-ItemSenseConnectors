@@ -203,7 +203,7 @@
             this.grpParams.Margin = new System.Windows.Forms.Padding(2);
             this.grpParams.Name = "grpParams";
             this.grpParams.Padding = new System.Windows.Forms.Padding(2);
-            this.grpParams.Size = new System.Drawing.Size(531, 110);
+            this.grpParams.Size = new System.Drawing.Size(593, 110);
             this.grpParams.TabIndex = 9;
             this.grpParams.TabStop = false;
             this.grpParams.Text = "Staging Area Params";
@@ -211,11 +211,11 @@
             // grpFacility
             // 
             this.grpFacility.Controls.Add(this.cmbFacility);
-            this.grpFacility.Location = new System.Drawing.Point(28, 36);
+            this.grpFacility.Location = new System.Drawing.Point(4, 36);
             this.grpFacility.Margin = new System.Windows.Forms.Padding(2);
             this.grpFacility.Name = "grpFacility";
             this.grpFacility.Padding = new System.Windows.Forms.Padding(2);
-            this.grpFacility.Size = new System.Drawing.Size(204, 70);
+            this.grpFacility.Size = new System.Drawing.Size(265, 70);
             this.grpFacility.TabIndex = 7;
             this.grpFacility.TabStop = false;
             this.grpFacility.Text = "Facility:";
@@ -226,11 +226,11 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbFacility.FormattingEnabled = true;
             this.cmbFacility.Items.AddRange(new object[] {
-            "Triumph"});
+            "IDL_Global_Sandbox"});
             this.cmbFacility.Location = new System.Drawing.Point(14, 27);
             this.cmbFacility.Margin = new System.Windows.Forms.Padding(2);
             this.cmbFacility.Name = "cmbFacility";
-            this.cmbFacility.Size = new System.Drawing.Size(186, 33);
+            this.cmbFacility.Size = new System.Drawing.Size(247, 33);
             this.cmbFacility.TabIndex = 2;
             // 
             // grpDoor
@@ -238,11 +238,11 @@
             this.grpDoor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.grpDoor.Controls.Add(this.cmbDoor);
-            this.grpDoor.Location = new System.Drawing.Point(236, 36);
+            this.grpDoor.Location = new System.Drawing.Point(273, 36);
             this.grpDoor.Margin = new System.Windows.Forms.Padding(2);
             this.grpDoor.Name = "grpDoor";
             this.grpDoor.Padding = new System.Windows.Forms.Padding(2);
-            this.grpDoor.Size = new System.Drawing.Size(271, 70);
+            this.grpDoor.Size = new System.Drawing.Size(296, 70);
             this.grpDoor.TabIndex = 1;
             this.grpDoor.TabStop = false;
             this.grpDoor.Text = "Threshold / Zone Name:";
@@ -254,12 +254,11 @@
             this.cmbDoor.FormattingEnabled = true;
             this.cmbDoor.Items.AddRange(new object[] {
             "any",
-            "lab",
-            "shelves"});
-            this.cmbDoor.Location = new System.Drawing.Point(4, 26);
+            "IDL_Train"});
+            this.cmbDoor.Location = new System.Drawing.Point(21, 26);
             this.cmbDoor.Margin = new System.Windows.Forms.Padding(2);
             this.cmbDoor.Name = "cmbDoor";
-            this.cmbDoor.Size = new System.Drawing.Size(246, 33);
+            this.cmbDoor.Size = new System.Drawing.Size(271, 33);
             this.cmbDoor.TabIndex = 0;
             // 
             // grpRun
