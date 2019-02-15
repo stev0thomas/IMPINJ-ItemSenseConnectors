@@ -49,8 +49,8 @@ namespace PalletBuilder
         private void PalletBldForm_Load(object sender, EventArgs e)
         {
             //Initialize the combo boxes with app.config values
-            cmbFacility.Text = ConfigurationManager.AppSettings["LastFacility"];
-            cmbDoor.Text = ConfigurationManager.AppSettings["LastZone"];
+            txtFacility.Text = ConfigurationManager.AppSettings["LastFacility"];
+            txtZone.Text = ConfigurationManager.AppSettings["LastZone"];
             txtRun.Text = ConfigurationManager.AppSettings["LastPalletId"];
 
             btnStart.Enabled = true;
@@ -507,15 +507,20 @@ namespace PalletBuilder
                     rec.JobName = msg.JobName;
 
                     //check to see if we want to process this event 
-                    if (ObsvThreshold.ToUpper() == "ANY")
-                        bAdd = true;
-                    else
+                    if (ObsvThreshold.Length > 0)
                     {
-                        if (rec.Threshold.ToUpper() == ObsvThreshold.ToUpper())
+                        if (ObsvThreshold.ToUpper() == "ANY")
                             bAdd = true;
                         else
-                            bAdd = false;
+                        {
+                            if (rec.Threshold.ToUpper() == ObsvThreshold.ToUpper())
+                                bAdd = true;
+                            else
+                                bAdd = false;
+                        }
                     }
+                    else
+                        bAdd = true;
 
                     if (bAdd)
                     {
@@ -573,7 +578,13 @@ namespace PalletBuilder
             {
                 try
                 {
-                    var msg = new JavaScriptSerializer().Deserialize<ItemEventRec>(message);
+                    var settings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        MissingMemberHandling = MissingMemberHandling.Ignore
+                    };
+                    var msg = JsonConvert.DeserializeObject<ItemEventRec>(message, settings);
+                    //var msg = new JavaScriptSerializer().Deserialize<ItemEventRec>(message);
 
                     ItemEventRec rec = new ItemEventRec();
                     rec.Epc = msg.Epc;
@@ -583,7 +594,6 @@ namespace PalletBuilder
                     rec.ToFacility = msg.ToFacility;
                     rec.FromFloor = msg.FromFloor;
                     rec.ToFloor = msg.ToFloor;
-                    rec.FromX = msg.FromX;
                     rec.ToX = msg.ToX;
                     rec.FromY = msg.FromY;
                     rec.ToY = msg.ToY;
@@ -600,15 +610,20 @@ namespace PalletBuilder
                     }
 
                     //check to see if we want to process this event 
-                    if (ObsvThreshold.ToUpper() == "ANY")
-                        bAdd = true;
-                    else
+                    if (ObsvThreshold.Length > 0)
                     {
-                        if (rec.ToZone.ToUpper() == ObsvThreshold.ToUpper())
+                        if (ObsvThreshold.ToUpper() == "ANY")
                             bAdd = true;
                         else
-                            bAdd = false;
+                        {
+                            if (rec.ToZone.ToUpper() == ObsvThreshold.ToUpper())
+                                bAdd = true;
+                            else
+                                bAdd = false;
+                        }
                     }
+                    else
+                        bAdd = true;
 
                     if (bAdd)
                     {
@@ -636,7 +651,7 @@ namespace PalletBuilder
         private void PalletBldForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             exit_event.Set();
-            Application.Exit();
+            bRunning = false;
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -652,7 +667,7 @@ namespace PalletBuilder
 
             bRunning = true;
             EnableControls(false);
-            ObsvThreshold = cmbDoor.Text;
+            ObsvThreshold = txtZone.Text;
             txtTotalTags.Text = "0";
             PalletCntTxt.Text = "0";
 
@@ -673,14 +688,14 @@ namespace PalletBuilder
         }
         private void EnableControls(bool enabled)
         {
-            cmbFacility.Enabled = enabled;
+            txtFacility.Enabled = enabled;
             btnStart.Enabled = enabled;
             btnStop.Enabled = !enabled;
             btnInsert.Enabled = enabled;
             btnExit.Enabled = enabled;
             btnExport.Enabled = enabled;
             btnConfig.Enabled = enabled;
-            cmbDoor.Enabled = enabled;
+            txtZone.Enabled = enabled;
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -786,8 +801,8 @@ namespace PalletBuilder
                         NpgsqlCommand insertRun_cmd = new NpgsqlCommand(postCfgCmdText, conn);
                         insertRun_cmd.CommandType = CommandType.Text;
                         insertRun_cmd.Parameters.Add("@palletId", NpgsqlDbType.Bigint).Value = Convert.ToInt64(txtRun.Text);
-                        insertRun_cmd.Parameters.Add("@facility", NpgsqlDbType.Varchar, 48).Value = cmbFacility.Text;
-                        insertRun_cmd.Parameters.Add("@zoneName", NpgsqlDbType.Varchar, 48).Value = cmbDoor.Text;
+                        insertRun_cmd.Parameters.Add("@facility", NpgsqlDbType.Varchar, 48).Value = txtFacility.Text;
+                        insertRun_cmd.Parameters.Add("@zoneName", NpgsqlDbType.Varchar, 48).Value = txtZone.Text;
                         insertRun_cmd.Parameters.Add("@createTm", NpgsqlDbType.TimestampTz).Value = DateTime.UtcNow;
 
                         //insert the new test run params into the table 
@@ -856,8 +871,8 @@ namespace PalletBuilder
                         SqlCommand insertRun_cmd = new SqlCommand(postCfgCmdText, conn);
                         insertRun_cmd.CommandType = CommandType.Text;
                         insertRun_cmd.Parameters.Add("@palletId", SqlDbType.BigInt).Value = Convert.ToInt64(txtRun.Text);
-                        insertRun_cmd.Parameters.Add("@facility", SqlDbType.VarChar, 48).Value = cmbFacility.Text;
-                        insertRun_cmd.Parameters.Add("@zoneName", SqlDbType.VarChar, 48).Value = cmbDoor.Text;
+                        insertRun_cmd.Parameters.Add("@facility", SqlDbType.VarChar, 48).Value = txtFacility.Text;
+                        insertRun_cmd.Parameters.Add("@zoneName", SqlDbType.VarChar, 48).Value = txtZone.Text;
                         insertRun_cmd.Parameters.Add("@createTm", SqlDbType.DateTime).Value = DateTime.Now;
                         
                         //insert the new test run params into the table 
@@ -899,8 +914,8 @@ namespace PalletBuilder
                 Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
                 var settings = config.AppSettings.Settings;
 
-                settings["LastZone"].Value = cmbDoor.Text;
-                settings["LastFacility"].Value = cmbFacility.Text;
+                settings["LastZone"].Value = txtZone.Text;
+                settings["LastFacility"].Value = txtFacility.Text;
                 settings["LastPalletId"].Value = txtRun.Text;
 
                 config.Save(ConfigurationSaveMode.Modified);

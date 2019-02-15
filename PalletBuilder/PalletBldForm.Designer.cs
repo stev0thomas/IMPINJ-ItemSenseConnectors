@@ -43,9 +43,7 @@
             this.btnConfig = new System.Windows.Forms.Button();
             this.grpParams = new System.Windows.Forms.GroupBox();
             this.grpFacility = new System.Windows.Forms.GroupBox();
-            this.cmbFacility = new System.Windows.Forms.ComboBox();
             this.grpDoor = new System.Windows.Forms.GroupBox();
-            this.cmbDoor = new System.Windows.Forms.ComboBox();
             this.grpRun = new System.Windows.Forms.GroupBox();
             this.txtRun = new System.Windows.Forms.TextBox();
             this.grpResults = new System.Windows.Forms.GroupBox();
@@ -67,6 +65,8 @@
             this.dataColumn4 = new System.Data.DataColumn();
             this.MoveBtn = new System.Windows.Forms.Button();
             this.SelectBtn = new System.Windows.Forms.Button();
+            this.txtFacility = new System.Windows.Forms.TextBox();
+            this.txtZone = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTagEvents)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dtThreshEvents)).BeginInit();
             this.grpParams.SuspendLayout();
@@ -210,7 +210,7 @@
             // 
             // grpFacility
             // 
-            this.grpFacility.Controls.Add(this.cmbFacility);
+            this.grpFacility.Controls.Add(this.txtFacility);
             this.grpFacility.Location = new System.Drawing.Point(4, 36);
             this.grpFacility.Margin = new System.Windows.Forms.Padding(2);
             this.grpFacility.Name = "grpFacility";
@@ -220,24 +220,11 @@
             this.grpFacility.TabStop = false;
             this.grpFacility.Text = "Facility:";
             // 
-            // cmbFacility
-            // 
-            this.cmbFacility.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbFacility.FormattingEnabled = true;
-            this.cmbFacility.Items.AddRange(new object[] {
-            "IDL_Global_Sandbox"});
-            this.cmbFacility.Location = new System.Drawing.Point(14, 27);
-            this.cmbFacility.Margin = new System.Windows.Forms.Padding(2);
-            this.cmbFacility.Name = "cmbFacility";
-            this.cmbFacility.Size = new System.Drawing.Size(247, 33);
-            this.cmbFacility.TabIndex = 2;
-            // 
             // grpDoor
             // 
             this.grpDoor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.grpDoor.Controls.Add(this.cmbDoor);
+            this.grpDoor.Controls.Add(this.txtZone);
             this.grpDoor.Location = new System.Drawing.Point(273, 36);
             this.grpDoor.Margin = new System.Windows.Forms.Padding(2);
             this.grpDoor.Name = "grpDoor";
@@ -246,20 +233,6 @@
             this.grpDoor.TabIndex = 1;
             this.grpDoor.TabStop = false;
             this.grpDoor.Text = "Threshold / Zone Name:";
-            // 
-            // cmbDoor
-            // 
-            this.cmbDoor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbDoor.FormattingEnabled = true;
-            this.cmbDoor.Items.AddRange(new object[] {
-            "any",
-            "IDL_Train"});
-            this.cmbDoor.Location = new System.Drawing.Point(21, 26);
-            this.cmbDoor.Margin = new System.Windows.Forms.Padding(2);
-            this.cmbDoor.Name = "cmbDoor";
-            this.cmbDoor.Size = new System.Drawing.Size(271, 33);
-            this.cmbDoor.TabIndex = 0;
             // 
             // grpRun
             // 
@@ -532,6 +505,21 @@
             this.SelectBtn.UseVisualStyleBackColor = true;
             this.SelectBtn.Click += new System.EventHandler(this.SelectBtn_Click);
             // 
+            // txtFacility
+            // 
+            this.txtFacility.Location = new System.Drawing.Point(24, 26);
+            this.txtFacility.Name = "txtFacility";
+            this.txtFacility.Size = new System.Drawing.Size(224, 30);
+            this.txtFacility.TabIndex = 0;
+            // 
+            // txtZone
+            // 
+            this.txtZone.Location = new System.Drawing.Point(10, 29);
+            this.txtZone.Name = "txtZone";
+            this.txtZone.Size = new System.Drawing.Size(270, 30);
+            this.txtZone.TabIndex = 1;
+            this.txtZone.Text = "any";
+            // 
             // PalletBldForm
             // 
             this.ClientSize = new System.Drawing.Size(1355, 681);
@@ -550,12 +538,15 @@
             this.MinimumSize = new System.Drawing.Size(1377, 737);
             this.Name = "PalletBldForm";
             this.Text = "Pallet Builder";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PalletBldForm_FormClosing);
             this.Load += new System.EventHandler(this.PalletBldForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTagEvents)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dtThreshEvents)).EndInit();
             this.grpParams.ResumeLayout(false);
             this.grpFacility.ResumeLayout(false);
+            this.grpFacility.PerformLayout();
             this.grpDoor.ResumeLayout(false);
+            this.grpDoor.PerformLayout();
             this.grpRun.ResumeLayout(false);
             this.grpRun.PerformLayout();
             this.grpResults.ResumeLayout(false);
@@ -587,9 +578,7 @@
         private System.Windows.Forms.Button btnConfig;
         private System.Windows.Forms.GroupBox grpParams;
         public System.Windows.Forms.GroupBox grpFacility;
-        private System.Windows.Forms.ComboBox cmbFacility;
         private System.Windows.Forms.GroupBox grpDoor;
-        private System.Windows.Forms.ComboBox cmbDoor;
         private System.Windows.Forms.GroupBox grpRun;
         private System.Windows.Forms.TextBox txtRun;
         private System.Windows.Forms.GroupBox grpResults;
@@ -612,5 +601,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn epcDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn Threshold;
         private System.Data.DataColumn dataColumn3;
+        private System.Windows.Forms.TextBox txtFacility;
+        private System.Windows.Forms.TextBox txtZone;
     }
 }

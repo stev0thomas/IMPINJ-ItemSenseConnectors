@@ -44,21 +44,20 @@ namespace PalletBuilder
         public string ToFacility { get; set; } = null;
 
         [JsonProperty("fromX", NullValueHandling = NullValueHandling.Ignore)]
-        public double FromX { get; set; } = 0;
+        public double FromX { get; set; } 
 
         [JsonProperty("fromY", NullValueHandling = NullValueHandling.Ignore)]
-        public double FromY { get; set; } = 0;
+        public double FromY { get; set; }
 
         [JsonProperty("toX", NullValueHandling = NullValueHandling.Ignore)]
-        public double ToX { get; set; } = 0;
+        public double ToX { get; set; }
 
         [JsonProperty("toY", NullValueHandling = NullValueHandling.Ignore)]
-        public double ToY { get; set; } = 0;
+        public double ToY { get; set; }
 
         [JsonProperty("observationTime")]
         public DateTime ObservationTime { get; set; }
 
-        [JsonProperty("palletId", NullValueHandling = NullValueHandling.Ignore)]
         public long PalletId { get; set; }
 
         public ItemEventRec()
